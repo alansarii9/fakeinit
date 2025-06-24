@@ -1,9 +1,9 @@
-// ✅ تم ربط المشروع بـ Firebase Realtime Database لمزامنة اللاعبين
+// ✅ تم ربط المشروع بـ Firebase Realtime Database لمزامنة اللاعبين مع إدراج المضيف تلقائيًا
 
 import React, { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, set, push, update } from "firebase/database";
+import { getDatabase, ref, onValue, set } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDmnZFITZ7dOO2WfyVTJgbUNC0yDqEWgg8",
@@ -50,8 +50,13 @@ export default function App() {
   }, [roomCode]);
 
   const createRoom = () => {
+    if (!name) return alert("أدخل اسمك أولاً");
     const code = Math.floor(1000 + Math.random() * 9000).toString();
+    const id = nanoid();
+    const hostPlayer = { id, name };
     setRoomCode(code);
+    setCurrentPlayerId(id);
+    set(ref(db, `rooms/${code}/players/${id}`), hostPlayer);
     setStage("host");
   };
 
@@ -96,10 +101,10 @@ export default function App() {
     return (
       <div style={{ textAlign: "center", padding: 40, direction: "rtl" }}>
         <h1>🎭 لعبة من هو الفيك؟</h1>
+        <input placeholder="اسمك" value={name} onChange={e => setName(e.target.value)} />
         <button onClick={createRoom}>🎬 إنشاء غرفة</button>
         <hr style={{ margin: 20 }} />
         <h3>🎮 الدخول إلى غرفة موجودة</h3>
-        <input placeholder="اسمك" value={name} onChange={e => setName(e.target.value)} />
         <input placeholder="رمز الغرفة" value={roomCode} onChange={e => setRoomCode(e.target.value)} />
         <button onClick={joinRoom}>🚪 دخول</button>
       </div>
