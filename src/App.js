@@ -1,7 +1,22 @@
-// ✅ تحديث: إخفاء السؤال عن المضيف وعدم إظهاره على الشاشة الكبيرة
+// ✅ تم ربط المشروع بـ Firebase Realtime Database لمزامنة اللاعبين
 
 import React, { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, onValue, set, push, update } from "firebase/database";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDmnZFITZ7dOO2WfyVTJgbUNC0yDqEWgg8",
+  authDomain: "fakeititit.firebaseapp.com",
+  databaseURL: "https://fakeititit-default-rtdb.firebaseio.com",
+  projectId: "fakeititit",
+  storageBucket: "fakeititit.firebasestorage.app",
+  messagingSenderId: "216129045105",
+  appId: "1:216129045105:web:d31b6b6e035a481b4dd1d0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 const questions = [
   "ارفع يدك إذا تحب الشاي أكثر من القهوة",
@@ -22,24 +37,38 @@ export default function App() {
   const [timerActive, setTimerActive] = useState(false);
   const [currentPlayerId, setCurrentPlayerId] = useState(null);
 
+  useEffect(() => {
+    if (!roomCode) return;
+    const playersRef = ref(db, `rooms/${roomCode}/players`);
+    onValue(playersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.values(data);
+        setPlayers(list);
+      }
+    });
+  }, [roomCode]);
+
   const createRoom = () => {
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     setRoomCode(code);
-    setPlayers([]);
     setStage("host");
   };
 
   const joinRoom = () => {
     if (!name || !roomCode) return alert("أدخل الاسم ورمز الغرفة");
-    const newPlayer = { id: nanoid(), name };
-    setPlayers(prev => [...prev, newPlayer]);
-    setCurrentPlayerId(newPlayer.id);
+    const id = nanoid();
+    const newPlayer = { id, name };
+    set(ref(db, `rooms/${roomCode}/players/${id}`), newPlayer);
+    setCurrentPlayerId(id);
     setStage("player");
   };
 
   const simulatePlayers = () => {
-    const fakePlayers = ["أحمد", "سارة", "فهد"].map(n => ({ id: nanoid(), name: n }));
-    setPlayers(fakePlayers);
+    ["أحمد", "سارة", "فهد"].forEach(n => {
+      const id = nanoid();
+      set(ref(db, `rooms/${roomCode}/players/${id}`), { id, name: n });
+    });
   };
 
   const startRound = () => {
