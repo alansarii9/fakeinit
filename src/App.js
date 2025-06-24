@@ -1,4 +1,4 @@
-// ✅ تم ربط المشروع بـ Firebase Realtime Database لمزامنة اللاعبين مع إدراج المضيف تلقائيًا
+// ✅ تم تحسين الكود لحفظ اسم اللاعب في localStorage وتحديد المضيف بوضوح
 
 import React, { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
@@ -38,6 +38,11 @@ export default function App() {
   const [currentPlayerId, setCurrentPlayerId] = useState(null);
 
   useEffect(() => {
+    const savedName = localStorage.getItem("playerName");
+    if (savedName) setName(savedName);
+  }, []);
+
+  useEffect(() => {
     if (!roomCode) return;
     const playersRef = ref(db, `rooms/${roomCode}/players`);
     onValue(playersRef, (snapshot) => {
@@ -53,7 +58,7 @@ export default function App() {
     if (!name) return alert("أدخل اسمك أولاً");
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     const id = nanoid();
-    const hostPlayer = { id, name };
+    const hostPlayer = { id, name, isHost: true };
     setRoomCode(code);
     setCurrentPlayerId(id);
     set(ref(db, `rooms/${code}/players/${id}`), hostPlayer);
@@ -63,7 +68,7 @@ export default function App() {
   const joinRoom = () => {
     if (!name || !roomCode) return alert("أدخل الاسم ورمز الغرفة");
     const id = nanoid();
-    const newPlayer = { id, name };
+    const newPlayer = { id, name, isHost: false };
     set(ref(db, `rooms/${roomCode}/players/${id}`), newPlayer);
     setCurrentPlayerId(id);
     setStage("player");
@@ -72,7 +77,7 @@ export default function App() {
   const simulatePlayers = () => {
     ["أحمد", "سارة", "فهد"].forEach(n => {
       const id = nanoid();
-      set(ref(db, `rooms/${roomCode}/players/${id}`), { id, name: n });
+      set(ref(db, `rooms/${roomCode}/players/${id}`), { id, name: n, isHost: false });
     });
   };
 
@@ -97,11 +102,16 @@ export default function App() {
     return () => clearInterval(interval);
   }, [timerActive, seconds]);
 
+  const handleNameChange = (e) => {
+    setName(e.target.value);
+    localStorage.setItem("playerName", e.target.value);
+  };
+
   if (stage === "welcome") {
     return (
       <div style={{ textAlign: "center", padding: 40, direction: "rtl" }}>
         <h1>🎭 لعبة من هو الفيك؟</h1>
-        <input placeholder="اسمك" value={name} onChange={e => setName(e.target.value)} />
+        <input placeholder="اسمك" value={name} onChange={handleNameChange} />
         <button onClick={createRoom}>🎬 إنشاء غرفة</button>
         <hr style={{ margin: 20 }} />
         <h3>🎮 الدخول إلى غرفة موجودة</h3>
@@ -116,9 +126,13 @@ export default function App() {
       <div style={{ padding: 30, direction: "rtl", fontFamily: "Arial" }}>
         <h2>📺 الغرفة جاهزة</h2>
         <p>رمز الغرفة: <strong>{roomCode}</strong></p>
-        <h3>👥 اللاعبين:</h3>
+        <h3>👥 اللاعبين داخل الغرفة:</h3>
         <ul>
-          {players.map(p => <li key={p.id}>{p.name}</li>)}
+          {players.map(p => (
+            <li key={p.id}>
+              {p.name} {p.isHost ? "(المضيف)" : ""}
+            </li>
+          ))}
         </ul>
         {!question && (
           <>
