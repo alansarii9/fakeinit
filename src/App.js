@@ -175,5 +175,39 @@ export default function App() {
     );
   }
 
-  return <div style={{ backgroundColor: '#001f2f', color: 'white', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>مرحلة: {stage}</div>;
+  if (stage === "welcome") {
+    return (
+      <div style={{ backgroundColor: '#001f2f', color: 'white', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '20px', padding: '30px', fontFamily: 'sans-serif' }}>
+        <h1 style={{ fontSize: '40px', color: '#00e5ff' }}>🎭 من هو الفيك؟</h1>
+        <p style={{ fontSize: '18px', marginBottom: '20px' }}>اكتب اسمك وابدأ الجولة الآن!</p>
+
+        <input
+          style={{ padding: '10px 20px', borderRadius: '25px', border: 'none', fontSize: '16px', width: '250px', textAlign: 'center' }}
+          placeholder="اسمك"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+
+        <input
+          style={{ padding: '10px 20px', borderRadius: '25px', border: 'none', fontSize: '16px', width: '250px', textAlign: 'center' }}
+          placeholder="رمز الغرفة (للدخول فقط)"
+          value={roomCode}
+          onChange={e => setRoomCode(e.target.value)}
+        />
+
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button
+            onClick={createRoom}
+            style={{ padding: '10px 25px', borderRadius: '30px', fontSize: '16px', backgroundColor: '#00bcd4', color: 'white', border: 'none' }}>
+            🎬 إنشاء غرفة
+          </button>
+          <button
+            onClick={joinRoom}
+            style={{ padding: '10px 25px', borderRadius: '30px', fontSize: '16px', backgroundColor: '#4caf50', color: 'white', border: 'none' }}>
+            🚪 دخول
+          </button>
+        </div>
+      </div>
+    );
+  }
 }
