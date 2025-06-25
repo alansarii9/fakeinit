@@ -1,9 +1,8 @@
-// ✅ تم تحسين الكود لحفظ اسم اللاعب في localStorage وتحديد المضيف بوضوح
-
 import React, { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, set } from "firebase/database";
+import './App.css';  // نضيف الـ CSS في ملف خاص
 
 const firebaseConfig = {
   apiKey: "AIzaSyDmnZFITZ7dOO2WfyVTJgbUNC0yDqEWgg8",
@@ -85,11 +84,32 @@ export default function App() {
     if (players.length < 3) return alert("يجب أن يكون هناك 3 لاعبين على الأقل");
     const randomFaker = players[Math.floor(Math.random() * players.length)].id;
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+
+    // تخزين السؤال والوقت في Firebase
+    set(ref(db, `rooms/${roomCode}/round`), {
+      fakerId: randomFaker,
+      question: randomQuestion,
+      startTime: Date.now()
+    });
+
     setFakerId(randomFaker);
     setQuestion(randomQuestion);
     setSeconds(30);
     setTimerActive(true);
   };
+
+  useEffect(() => {
+    if (!roomCode) return;
+    const roundRef = ref(db, `rooms/${roomCode}/round`);
+    onValue(roundRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setQuestion(data.question);
+        setFakerId(data.fakerId);
+        setSeconds(30); // يبدأ العد التنازلي من 30 ثانية
+      }
+    });
+  }, [roomCode]);
 
   useEffect(() => {
     if (!timerActive || seconds === 0) return;
