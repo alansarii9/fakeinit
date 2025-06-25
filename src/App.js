@@ -7,7 +7,16 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, set, update, remove } from "firebase/database";
 import './App.css';
 
-const firebaseConfig = { /* ... */ };
+const firebaseConfig = {
+  apiKey: "AIzaSyDmnZFITZ7dOO2WfyVTJgbUNC0yDqEWgg8",
+  authDomain: "fakeititit.firebaseapp.com",
+  databaseURL: "https://fakeititit-default-rtdb.firebaseio.com",
+  projectId: "fakeititit",
+  storageBucket: "fakeititit.appspot.com",
+  messagingSenderId: "216129045105",
+  appId: "1:216129045105:web:d31b6b6e035a481b4dd1d0"
+};
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -63,6 +72,7 @@ export default function App() {
   }, [currentRound, timer]);
 
   const createRoom = () => {
+    if (!name.trim()) return alert("أدخل اسمك أولاً");
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     const id = nanoid();
     set(ref(db, `rooms/${code}/players/${id}`), { id, name, isHost: true, points: 0 });
@@ -72,32 +82,33 @@ export default function App() {
   };
 
   const joinRoom = () => {
+    if (!name.trim() || !roomCode.trim()) return alert("أدخل الاسم ورمز الغرفة");
     const id = nanoid();
     set(ref(db, `rooms/${roomCode}/players/${id}`), { id, name, isHost: false, points: 0 });
     setPlayerId(id);
     setStage("lobby");
   };
 
-  // باقي المراحل كما هي (chooseMode / results / game / lobby)
-
   if (stage === "welcome") {
     return (
-      <div className="container">
+      <div className="container" style={{ textAlign: 'center', paddingTop: 60 }}>
         <h1 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>🎭 لعبة من هو الفيك؟</h1>
         <input
-          style={{ padding: '10px', fontSize: '1rem', marginBottom: '10px' }}
-          placeholder="اسمك"
+          style={{ padding: '10px', fontSize: '1rem', marginBottom: '10px', width: '80%' }}
+          placeholder="اكتب اسمك"
           value={name}
           onChange={e => setName(e.target.value)}
         /><br />
-        <button onClick={createRoom} style={{ marginRight: 10 }}>🎬 إنشاء غرفة</button>
-        <input
-          style={{ padding: '10px', fontSize: '1rem', margin: '10px 0' }}
-          placeholder="رمز الغرفة"
-          value={roomCode}
-          onChange={e => setRoomCode(e.target.value)}
-        />
-        <button onClick={joinRoom}>🚪 دخول</button>
+        <button onClick={createRoom} style={{ padding: '10px 20px', marginBottom: '20px' }}>🎬 إنشاء غرفة جديدة</button>
+        <div style={{ margin: '20px 0' }}>
+          <input
+            style={{ padding: '10px', fontSize: '1rem', width: '60%' }}
+            placeholder="رمز الغرفة للدخول"
+            value={roomCode}
+            onChange={e => setRoomCode(e.target.value)}
+          />
+          <button onClick={joinRoom} style={{ padding: '10px 20px', marginLeft: 10 }}>🚪 دخول</button>
+        </div>
       </div>
     );
   }
